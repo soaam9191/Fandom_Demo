@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>모두의 콘서트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 팬덤 응원 문화처럼 밝고 들뜬, 그러나 순위 없이 다정한 목소리
+   IDEA: 콘서트장 — 팬덤마다 구역이 있고, 기부는 응원봉 하나를 켜는 일
+   PICTURE: 꿈별이 리허설에서 커튼콜까지 떠오르는 세로 미터 + 응원봉으로 채워지는 객석
+   COLOUR and TYPE: 핑크 #ff2d78 주도, 밤의 공연장 #120d24, 팬덤별 응원봉 색 / Noto Sans KR 900
+   LAYOUT: 히어로 → 어두운 공연장 → 티커 → 팬덤 카드 → 방법·단계·사용처·FAQ */
+:root{color-scheme:light;--bg:#fff;--ink:#16121f;--mute:#6b6478;--pink:#ff2d78;--pinkS:#ffe3ee;--night:#120d24;--line:#ece8f2;--card:#fff}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip;word-break:keep-all}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+a{color:inherit}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+.wrap{max-width:1200px;margin:0 auto;padding:0 max(4vw,16px)}
+.band{padding:clamp(44px,6vw,84px) 0}
+h2{font-size:clamp(24px,3vw,32px);line-height:1.2;margin:0 0 6px;font-weight:900;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 26px;font-size:15px}
+
+/* header */
+header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:16px;min-height:60px;flex-wrap:wrap}
+.logo{font-weight:900;font-size:18px;text-decoration:none;display:flex;align-items:center;gap:6px}
+.logo b{color:var(--pink)}.logo small{font-weight:500;font-size:12px;color:var(--mute)}
+nav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+nav a{text-decoration:none;font-size:14px;font-weight:700;padding:8px 10px;border-radius:8px}
+nav a:hover{background:var(--pinkS)}
+
+/* hero */
+.hero,.solo{position:relative;overflow:hidden;isolation:isolate;
+  background:radial-gradient(40% 50% at 12% 18%,rgba(255,255,255,.32),rgba(255,255,255,0) 70%),linear-gradient(180deg,#ff4f93 0%,#ff6aa5 45%,#ff8dbb 75%,#ffb3d2 100%)}
+/* 밝은 분홍 바닥 */
+.hero::before,.solo::before{content:"";position:absolute;left:-12%;right:-12%;bottom:-26%;height:46%;border-radius:50%;background:radial-gradient(ellipse at 50% 30%,#ffd9e9,#ffbad6 60%,#ffa0c6);box-shadow:inset 0 10px 40px rgba(255,255,255,.4);z-index:0;pointer-events:none}
+.sky{position:absolute;inset:0;pointer-events:none;z-index:0}
+.solo .wrap{position:relative;z-index:1}
+/* 떠다니는 풍선·별·응원봉 */
+.fly{position:absolute;animation:floaty 4.6s ease-in-out infinite alternate}
+.fly svg{display:block;overflow:visible}
+@keyframes floaty{from{transform:translateY(0) rotate(var(--r,0deg))}to{transform:translateY(-16px) rotate(calc(var(--r,0deg) + 4deg))}}
+.bal{position:relative;width:var(--w,74px);aspect-ratio:.86;border-radius:50% 50% 47% 47%;background:radial-gradient(circle at 32% 26%,#fff 0 5%,#ffd0e3 13%,#ff8cbf 46%,#e8467f 100%);box-shadow:inset -8px -12px 20px rgba(150,10,60,.3)}
+.bal::before{content:"";position:absolute;left:50%;top:96%;width:10px;height:8px;margin-left:-5px;background:#e8467f;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.bal::after{content:"";position:absolute;left:50%;top:99%;width:1.5px;height:70px;background:rgba(255,255,255,.75)}
+.lglow{position:absolute;inset:-40%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.7),rgba(255,255,255,0) 62%);animation:lpulse 2.4s ease-in-out infinite}
+@keyframes lpulse{50%{opacity:.5;transform:scale(.9)}}
+@media(max-width:700px){.fly.m-hide{display:none}}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(24px,4vw,56px);align-items:center;padding-top:clamp(36px,5vw,64px);padding-bottom:clamp(36px,5vw,64px)}
+.sparks{position:absolute;inset:0}
+.spark{position:absolute;fill:#fff;overflow:visible;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 12px rgba(255,255,255,.85));animation:tw var(--d,2.6s) ease-in-out infinite;animation-delay:var(--w,0s);opacity:0}
+.spark.y{fill:#fff7c7;filter:drop-shadow(0 0 4px #fff3a0) drop-shadow(0 0 12px #ffe066)}
+@keyframes tw{0%,100%{opacity:0;transform:scale(.2)}45%{opacity:1;transform:scale(1.1)}65%{opacity:.9;transform:scale(.85)}}
+.badge{display:inline-block;background:var(--pink);color:#fff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:99px}
+.hero h1{font-size:clamp(34px,5.2vw,58px);line-height:1.12;margin:16px 0 18px;font-weight:900;letter-spacing:-.03em;text-wrap:balance}
+.hero h1 em{font-style:normal;background:linear-gradient(100deg,#e0357c 0%,#e0357c 38%,#ffb0d2 47%,#fff 50%,#ffb0d2 53%,#e0357c 62%,#e0357c 100%);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4.2s linear infinite;filter:drop-shadow(0 1px 8px rgba(255,255,255,.6))}
+@keyframes shine{from{background-position:120% 0}to{background-position:-120% 0}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.75)}80%,100%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}
+.hero .total{box-shadow:0 14px 40px rgba(170,60,110,.16)}
+.hero .fcard{box-shadow:0 24px 60px rgba(150,50,100,.22),0 0 0 4px rgba(255,255,255,.55)}
+.hero .meterBox{box-shadow:0 24px 60px rgba(60,0,30,.35)}
+.hero p.lead{font-size:16.5px;color:#4a4458;max-width:34em;margin:0 0 24px}
+.ctas{display:flex;gap:10px;flex-wrap:wrap}
+.btn{min-height:46px;border-radius:99px;padding:0 22px;font-weight:700;border:2px solid var(--ink);background:#fff;color:var(--ink);display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:15px}
+.btn.dark{background:var(--ink);color:#fff}
+.btn.dark .st{color:#ffd84d}
+.btn:hover{transform:translateY(-1px)}
+.total{margin-top:26px;background:#fff;border-radius:16px;padding:16px 18px;box-shadow:0 10px 30px rgba(255,45,120,.12);max-width:420px}
+.total .row{display:flex;justify-content:space-between;font-size:14px;font-weight:700}
+.total .row b{color:var(--pink)}
+.bar{height:8px;background:#f3eef7;border-radius:9px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#ff7aa8,var(--pink));border-radius:9px;transition:width .8s}
+.total small{color:var(--mute);font-size:13px}
+
+.feat{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:14px}
+.fcard{border-radius:24px;overflow:hidden;position:relative;aspect-ratio:4/4.2;box-shadow:0 20px 50px rgba(40,20,80,.18);transition:background .5s}
+.fcard .tag{position:absolute;top:14px;left:14px;background:#fff;color:var(--pink);font-weight:700;font-size:13px;padding:4px 12px;border-radius:99px;z-index:2}
+.ph{position:absolute;inset:0;display:grid;place-items:center}
+.ph svg{width:70%;height:80%;position:absolute;bottom:0}
+.ph span{position:relative;z-index:1;font-size:12px;color:rgba(0,0,0,.5);background:rgba(255,255,255,.55);padding:3px 10px;border-radius:6px}
+.fcard .cap{position:absolute;left:0;right:0;bottom:0;padding:18px 18px 16px;background:linear-gradient(transparent,rgba(10,5,25,.82));color:#fff;display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.fcard .cap strong{font-size:clamp(22px,2.4vw,28px);font-weight:900;display:block;line-height:1.1}
+.fcard .cap small{font-size:13px;opacity:.85}
+.fcard .cap .now{color:#ffd84d;font-weight:700;font-size:13px;white-space:nowrap}
+.meterBox{background:var(--night);border-radius:24px;padding:14px 10px;color:#fff;display:flex;flex-direction:column;align-items:center}
+.meterBox h4{margin:0 0 8px;font-size:12px;color:#ffd84d;font-weight:700}
+.vm{position:relative;flex:1;width:100%;min-height:260px}
+.vm .track{position:absolute;left:14px;top:4px;bottom:4px;width:8px;background:rgba(255,255,255,.12);border-radius:9px;overflow:hidden}
+.vm .fill{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#ff7aa8,#ffd84d);border-radius:9px;transition:height .9s cubic-bezier(.2,.9,.3,1.2)}
+.vm .lab{position:absolute;right:4px;font-size:11px;transform:translateY(50%);color:rgba(255,255,255,.55)}
+.vm .lab.on{color:#ffd84d;font-weight:700}
+.vm .star{position:absolute;left:18px;width:30px;height:30px;margin-left:-15px;transform:translateY(50%);transition:bottom .9s cubic-bezier(.2,.9,.3,1.2);filter:drop-shadow(0 0 8px #ffd84d)}
+.meterBox .next{font-size:11px;text-align:center;margin-top:8px;opacity:.8;line-height:1.3}
+.meterBox .next b{display:block;font-size:17px;color:#fff;opacity:1}
+.chips{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.chip{background:#fff;border:2px solid transparent;border-radius:14px;padding:8px;display:flex;align-items:center;gap:8px;text-align:left;min-height:52px;box-shadow:0 4px 14px rgba(40,20,80,.08)}
+.chip.on{border-color:var(--pink)}
+.chip i{width:28px;height:28px;border-radius:50%;flex:none}
+.chip b{display:block;font-size:13px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip small{font-size:11px;color:var(--mute)}
+
+/* stage */
+.stage{background:var(--night);color:#fff}
+.stage h2{text-align:center}.stage .sub{text-align:center;color:#b9b0d0}
+.stg{max-width:540px;margin:0 auto 26px;text-align:center;padding:16px;border-radius:0 0 50% 50%/0 0 100% 100%;background:linear-gradient(#2a2147,#1b1533);border:1px solid #3a2f5f;border-top:0;font-weight:900;letter-spacing:.15em;font-size:15px}
+.stg small{letter-spacing:0;font-weight:400;font-size:11px;color:#b9b0d0;margin-left:8px}
+.zones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.zone{background:#1c1636;border:1px solid #2f2752;border-radius:14px;padding:12px;text-align:left;color:#fff;transition:border-color .2s,transform .2s}
+.zone:hover{border-color:var(--c);transform:translateY(-2px)}
+.zone .zh{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:10px;gap:6px}
+.zone .zh span{display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zone .zh i{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c);flex:none}
+.zone .zh small{color:#9d94b8;font-weight:400;font-size:11px;white-space:nowrap}
+.seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+.seats u{aspect-ratio:1;border-radius:50%;background:#2c2449}
+.seats u.l{background:var(--c);box-shadow:0 0 6px var(--c)}
+.seats u.pop{animation:pop .7s ease-out}
+@keyframes pop{0%{transform:scale(.2);filter:brightness(2.5)}60%{transform:scale(1.5)}100%{transform:scale(1)}}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-size:12px;color:#9d94b8}
+.ticker{background:var(--pink);color:#fff;overflow:hidden;white-space:nowrap;font-weight:700;font-size:14px;padding:11px 0}
+.ticker div{display:inline-block;animation:mq 40s linear infinite}
+.ticker span{margin-right:44px}.ticker span::before{content:"●";margin-right:8px;font-size:10px;vertical-align:2px}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* why */
+.why{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.why div{border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 6px 20px rgba(40,20,80,.05)}
+.why h3{margin:0 0 6px;font-size:18px;color:var(--pink);font-weight:900}
+.why h4{margin:0 0 8px;font-size:15px}
+.why p{margin:0;font-size:14px;color:var(--mute)}
+
+/* find */
+.findhead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools input{height:44px;border:1px solid #ddd6e8;border-radius:10px;padding:0 14px;font-size:16px;width:240px;max-width:100%}
+.tools button{height:44px;border:1.5px solid var(--ink);background:#fff;border-radius:10px;padding:0 14px;font-weight:700;font-size:14px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 22px}
+.filters button{min-height:40px;padding:0 16px;border-radius:99px;border:1.5px solid #d9d2e4;background:#fff;font-weight:700;font-size:14px}
+.filters button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.card{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--card);box-shadow:0 8px 24px rgba(40,20,80,.06);display:flex;flex-direction:column}
+.card.shake{animation:sh .6s}
+@keyframes sh{0%,100%{transform:rotate(0)}20%{transform:rotate(-2.5deg)}40%{transform:rotate(2.5deg)}60%{transform:rotate(-1.5deg)}80%{transform:rotate(1.5deg)}}
+.cimg{position:relative;aspect-ratio:4/3}
+.cimg .ph span{position:absolute;left:8px;bottom:6px;font-size:10px;background:none;padding:0}
+.st1{position:absolute;top:10px;right:10px;background:var(--night);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;z-index:2}
+.st2{position:absolute;top:10px;left:10px;background:#fff;color:var(--pink);font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;z-index:2}
+.mini{position:absolute;right:14px;top:40px;bottom:12px;width:4px;background:rgba(255,255,255,.5);border-radius:4px;z-index:2}
+.mini b{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:4px;transition:height .8s}
+.cb{padding:14px 14px 16px;display:flex;flex-direction:column;flex:1}
+.cb h3{margin:0;font-size:18px;font-weight:900}
+.cb .meta{font-size:12px;color:var(--mute);margin:2px 0 10px}
+.cb .pr{display:flex;justify-content:space-between;font-size:12px;font-weight:700}
+.cb .bar{height:6px;margin:5px 0 10px}.cb .bar i{background:var(--c)}
+.cb .wk{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute)}
+.wkb{display:flex;gap:2px;align-items:flex-end;height:14px}
+.wkb u{width:4px;background:#e6e0ee;border-radius:1px}.wkb u.l{background:#e11d63}
+.cb .tog{font-size:12px;color:var(--mute);margin:6px 0 12px}
+.acts{margin-top:auto;display:grid;grid-template-columns:auto 1fr;gap:8px}
+.acts button{min-height:44px;border-radius:10px;font-weight:700;font-size:14px}
+.acts .sk{border:1.5px solid #f0c6d6;background:#fff;color:var(--pink);padding:0 14px}
+.acts .sk:disabled{color:#bbb;border-color:#eee;cursor:default}
+.acts .lt{border:0;background:var(--ink);color:#fff}
+.note{font-size:13px;color:var(--mute);margin-top:16px}
+.empty{grid-column:1/-1;text-align:center;padding:40px;color:var(--mute)}
+
+/* how / unlocks */
+.soft{background:#faf8fc}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.steps div{background:#fff;border-radius:16px;padding:20px;border:1px solid var(--line)}
+.steps b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--pink);color:#fff;font-size:14px;margin-bottom:12px}
+.steps h4{margin:0 0 6px;font-size:16px}.steps p{margin:0;font-size:14px;color:var(--mute)}
+.unl{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.unl div{border:1px solid var(--line);border-radius:14px;padding:16px;position:relative}
+.unl div.cur{border-color:var(--pink);box-shadow:0 0 0 2px var(--pinkS)}
+.unl h4{margin:0 0 4px;font-size:18px;font-weight:900}
+.unl small{color:var(--mute);font-size:12px;display:block;margin-bottom:6px}
+.unl p{margin:0;font-size:13.5px;font-weight:700}
+.unl .last{background:var(--night);color:#fff;border-color:var(--night)}
+.unl .last h4{color:#ff6fa3}.unl .last small{color:#b9b0d0}
+.unl .cnt{display:block;margin-top:8px;font-size:12px;color:var(--pink);font-weight:700}
+.usage{background:var(--night);color:#fff}
+.usage .wrap{display:grid;grid-template-columns:minmax(0,1.2fr) repeat(3,minmax(0,1fr));gap:14px;align-items:stretch}
+.usage .sub{color:#b9b0d0;margin:0}
+.usage .u{border:1px solid #3a2f5f;border-radius:14px;padding:18px}
+.usage .u b{display:block;margin-bottom:6px}.usage .u span{font-size:13px;color:#b9b0d0}
+.faq{max-width:780px;margin:0 auto}
+details{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:#fff}
+summary{padding:16px 18px;font-weight:700;cursor:pointer;font-size:15px}
+details p{margin:0;padding:0 18px 16px;color:var(--mute);font-size:14.5px}
+footer{background:var(--night);color:#b9b0d0;font-size:13px;padding:24px 0}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* modal & toast */
+.mask{position:fixed;inset:0;background:rgba(14,8,30,.6);display:none;place-items:center;z-index:50;padding:16px}
+.mask.open{display:grid}
+.modal{background:#fff;border-radius:22px;width:min(440px,100%);padding:24px;position:relative;max-height:92vh;overflow:auto}
+.modal h3{margin:0 0 4px;font-size:22px;font-weight:900}
+.modal .x{position:absolute;top:12px;right:12px;width:40px;height:40px;border:0;background:#f4f0f8;border-radius:50%;font-size:18px}
+.modal .who{display:flex;align-items:center;gap:10px;margin:12px 0 16px;padding:12px;border-radius:12px;background:#faf8fc;font-size:14px}
+.modal .who i{width:36px;height:36px;border-radius:50%;flex:none}
+.modal label{font-size:13px;font-weight:700;display:block;margin:12px 0 6px}
+.qty{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.qty button{min-height:46px;border:1.5px solid #ddd6e8;border-radius:10px;background:#fff;font-weight:700;font-size:14px}
+.qty button.on{border-color:var(--pink);background:var(--pinkS);color:var(--pink)}
+.modal input{width:100%;height:46px;border:1.5px solid #ddd6e8;border-radius:10px;padding:0 12px;font-size:16px}
+.sum{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0 12px;font-weight:700}
+.sum b{font-size:24px;color:var(--pink);white-space:nowrap}
+.modal .go{width:100%;min-height:52px;border:0;border-radius:12px;background:var(--ink);color:#fff;font-weight:900;font-size:16px}
+.modal .demo{font-size:12px;color:var(--mute);margin:10px 0 0;text-align:center}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,140%);background:var(--ink);color:#fff;padding:14px 20px;border-radius:14px;font-weight:700;z-index:60;transition:transform .35s;max-width:calc(100% - 32px);text-align:center;font-size:15px}
+.toast.show{transform:translate(-50%,0)}
+.burst{position:fixed;pointer-events:none;z-index:70;color:#ffd84d;font-size:18px;animation:fly 1.1s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(200deg);opacity:0}}
+
+/* 흰 라벨 타이틀 (블랙한산스) */
+.hero h1.lb,.solo h1.lb{font-family:'Black Han Sans',"Noto Sans KR",sans-serif;font-weight:400;font-size:clamp(34px,4.6vw,60px);line-height:1;letter-spacing:.01em;margin:4px 0 26px;text-wrap:nowrap}
+.solo h1.lb{font-size:clamp(28px,3.6vw,46px);text-wrap:wrap}
+.lb .l{display:block;width:fit-content;max-width:100%;background:#fff;color:#e3175f;padding:.12em .32em .14em;box-shadow:0 .1em .25em rgba(160,10,70,.25);position:relative;overflow:hidden;isolation:isolate;opacity:0;animation:stick .6s cubic-bezier(.2,1.4,.4,1) forwards}
+.lb .l:nth-child(1){transform:rotate(-3deg);animation-delay:.1s}
+.lb .l:nth-child(2){transform:rotate(2deg);margin:.08em 0 .08em .7em;animation-delay:.3s}
+.lb .l:nth-child(3){transform:rotate(-1.5deg);margin-left:.2em;animation-delay:.5s}
+.lb .l::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(105deg,transparent 40%,rgba(255,214,232,.95) 50%,transparent 60%);transform:translateX(-120%);animation:sweep 5s 1.4s ease-in-out infinite}
+.lb b{font-weight:inherit;color:#fff;background:#e3175f;padding:0 .12em;border-radius:.08em;margin:0 .02em}
+@keyframes stick{from{opacity:0;scale:1.25}to{opacity:1;scale:1}}
+@keyframes sweep{0%{transform:translateX(-120%)}30%,100%{transform:translateX(120%)}}
+.eyebrow{display:inline-block;color:#fff;font-weight:700;font-size:15px;margin-bottom:16px;text-shadow:0 1px 6px rgba(180,20,80,.35)}
+.eyebrow::before{content:"★ ";color:#fff4b0}
+/* 핑크 무대 위 글씨·버튼 */
+.solo .pills span{background:rgba(255,255,255,.45);color:#fff}
+.solo .pills span.d{background:#fff;color:#e3175f;opacity:1}
+.hero p.lead,.solo p.intro{color:#fff;text-shadow:0 1px 8px rgba(170,20,80,.35)}
+.solo .back{color:#fff}
+.solo .badge{background:#fff;color:#e3175f}
+.solo .fans h4{color:#fff}
+.hero .btn,.solo .btn{transition:transform .15s,box-shadow .15s}
+.hero .btn.dark,.solo .btn.dark{background:#b80f4c;border-color:#b80f4c;box-shadow:0 5px 0 #8a0a39,0 12px 24px rgba(140,10,60,.3)}
+.hero .btn:not(.dark),.solo .btn:not(.dark){background:#fff;border-color:#fff;color:#e3175f;box-shadow:0 5px 0 #ffb3d2}
+.hero .btn:active,.solo .btn:active{transform:translateY(4px);box-shadow:0 1px 0 #8a0a39}
+.hero .total .bar i{background:#e3175f}
+.hero .total .row b{color:#e3175f}
+/* photo, star sizing */
+.pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.vm .star svg,.ms svg{width:100%;height:100%;display:block}
+.mini .ms{position:absolute;left:50%;width:20px;height:20px;margin-left:-10px;transform:translateY(50%);transition:bottom .8s}
+.cb h3 a{text-decoration:none}.cb h3 a:hover{color:var(--pink)}
+a.cimg{display:block;color:inherit;text-decoration:none;overflow:hidden}
+a.cimg .ph svg,a.cimg .pimg{transition:transform .5s cubic-bezier(.2,.8,.3,1)}
+a.cimg:hover .ph svg,a.cimg:hover .pimg,a.cimg:focus-visible .pimg{transform:scale(1.06)}
+.go-page{position:absolute;left:50%;bottom:14px;transform:translate(-50%,8px);opacity:0;z-index:3;background:rgba(18,13,36,.86);color:#fff;font-size:13px;font-weight:700;padding:8px 14px;border-radius:99px;white-space:nowrap;transition:opacity .25s,transform .25s;backdrop-filter:blur(4px)}
+a.cimg:hover .go-page,a.cimg:focus-visible .go-page{opacity:1;transform:translate(-50%,0)}
+a.cimg:focus-visible{outline:3px solid var(--pink);outline-offset:-3px}
+@media(hover:none){.go-page{opacity:1;transform:translate(-50%,0);font-size:12px;padding:6px 12px;bottom:10px}}
+.hide{display:none!important}
+.loading{text-align:center;padding:60px 20px;color:var(--mute)}
+
+/* fandom page */
+.solo .wrap{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(24px,4vw,56px);align-items:start;padding-top:clamp(28px,4vw,56px);padding-bottom:clamp(36px,5vw,64px)}
+.solo .fcard{aspect-ratio:4/4.6}
+.back{display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:700;text-decoration:none;color:var(--mute);margin-bottom:10px;min-height:32px}
+.solo h1{font-size:clamp(30px,4.4vw,50px);line-height:1.1;margin:10px 0 12px;font-weight:900;letter-spacing:-.03em}
+.solo h1 em{font-style:normal;color:var(--c)}
+.solo .intro{color:#4a4458;margin:0 0 18px;max-width:36em;white-space:pre-line}
+.pills{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin-bottom:12px}
+.pills span{text-align:center;font-size:12px;font-weight:700;padding:7px 2px;border-radius:8px;background:rgba(255,255,255,.7);color:#9d94b0;white-space:nowrap}
+.pills span.d{background:var(--c);color:#fff;opacity:.55}
+.pills span.on{background:var(--night);color:#ffd84d;box-shadow:0 0 0 2px var(--c)}
+.hall{background:var(--night);border-radius:18px;padding:16px;color:#fff;margin-bottom:14px}
+.hall .zh{display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px;gap:8px}
+.hall .zh b{color:#ffd84d}
+.hall .seats{gap:6px}
+.sstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:16px}
+.sstats div{background:#fff;border-radius:14px;padding:10px 12px;box-shadow:0 4px 14px rgba(40,20,80,.06)}
+.sstats small{display:block;font-size:12px;color:var(--mute)}
+.sstats b{font-size:18px;font-weight:900;white-space:nowrap}
+.fans{margin-top:18px}
+.fans h4{margin:0 0 8px;font-size:14px}
+.fans div{display:flex;flex-wrap:wrap;gap:6px}
+.fans span{background:#fff;border-radius:99px;padding:5px 12px;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(40,20,80,.06)}
+.fans span i{font-style:normal;color:var(--pink);margin-left:4px;font-weight:500}
+.zone.me{border-color:#ffd84d;box-shadow:0 0 0 2px #ffd84d}
+
+/* embed (홈페이지 iframe 안) */
+.embed header{display:none}
+.embed .mask{position:absolute;top:0;left:0;right:0;bottom:auto;place-items:start center}
+.embed .toast{position:absolute;bottom:auto;transform:translate(-50%,0);opacity:0;transition:opacity .3s;pointer-events:none}
+.embed .toast.show{opacity:1}
+
+@media(max-width:980px){.solo .wrap{grid-template-columns:1fr}.solo .fcard{aspect-ratio:16/10}.hero .wrap{grid-template-columns:1fr}.zones,.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.why,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.unl{grid-template-columns:repeat(3,minmax(0,1fr))}.usage .wrap{grid-template-columns:1fr 1fr}.usage .wrap>div:first-child{grid-column:1/-1}}
+@media(max-width:700px){.sstats{grid-template-columns:repeat(2,minmax(0,1fr))}.pills span{font-size:11px}.zones,.grid{grid-template-columns:repeat(2,minmax(0,1fr))}nav{display:none}.chips{grid-template-columns:repeat(2,minmax(0,1fr))}.tools{width:100%}.tools input{flex:1}}
+@media(max-width:480px){.grid,.why,.steps,.usage .wrap{grid-template-columns:1fr}.unl{grid-template-columns:1fr 1fr}.feat{grid-template-columns:minmax(0,1fr) 76px}.zones{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="#top"><b>★</b> 모두의 콘서트 <small>by 한국소아암재단</small></a>
+  <nav><a href="#stage">공연장</a><a href="#find">팬덤 찾기</a><a href="#how">참여 방법</a><a href="#usage">기부금 사용처</a><a href="#faq">FAQ</a></nav>
+</div></header>
+
+<section class="solo hide" id="solo"></section>
+<section class="hero" id="top">
+  <div class="sky" aria-hidden="true">
+    <svg width="0" height="0" style="position:absolute"><defs><symbol id="st4" viewBox="0 0 24 24"><path d="M12 0C12.8 8.2 15.8 11.2 24 12C15.8 12.8 12.8 15.8 12 24C11.2 15.8 8.2 12.8 0 12C8.2 11.2 11.2 8.2 12 0Z"/></symbol>
+      <radialGradient id="hg" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".12" stop-color="#ffd0e3"/><stop offset=".5" stop-color="#ff7eb3"/><stop offset="1" stop-color="#e03a76"/></radialGradient>
+      <radialGradient id="sg" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff"/><stop offset=".15" stop-color="#fff4c2"/><stop offset=".55" stop-color="#ffd76a"/><stop offset="1" stop-color="#f5a623"/></radialGradient>
+      <radialGradient id="lgr" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#ffe3f0"/><stop offset="1" stop-color="#ff9cc9"/></radialGradient>
+      <linearGradient id="hd" x1="0" x2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ffe3ee"/><stop offset="1" stop-color="#ffb3d2"/></linearGradient>
+      <symbol id="heartB" viewBox="0 0 100 110"><path d="M50 100C18 76 2 56 2 34 2 16 16 4 30 4c9 0 16 5 20 12 4-7 11-12 20-12 14 0 28 12 28 30 0 22-16 42-48 66Z" fill="url(#hg)"/></symbol>
+      <symbol id="starB" viewBox="0 0 24 24"><path d="M12 1.5l3.1 6.6 7.2.9-5.3 5 1.4 7.2L12 17.7l-6.4 3.5 1.4-7.2-5.3-5 7.2-.9z" fill="url(#sg)" stroke="#fff" stroke-width="1" stroke-linejoin="round"/></symbol>
+      <symbol id="stick" viewBox="0 0 120 300"><circle cx="60" cy="58" r="52" fill="url(#lgr)" stroke="#fff" stroke-width="4"/><use href="#st4" x="36" y="34" width="48" height="48" fill="#ff4f93"/><rect x="46" y="108" width="28" height="18" rx="6" fill="#ff7eb3"/><rect x="40" y="124" width="40" height="150" rx="18" fill="url(#hd)"/><rect x="52" y="150" width="16" height="10" rx="5" fill="#ff7eb3"/></symbol>
+    </defs></svg>
+    <div class="fly m-hide" style="left:44%;top:7%;animation-delay:-1.2s"><div class="bal" style="--w:62px"></div></div>
+    <div class="fly" style="right:1.5%;top:5%;--r:8deg;animation-delay:-3s"><svg width="70" height="78" viewBox="0 0 100 110"><use href="#heartB"/></svg></div>
+    <div class="fly m-hide" style="left:2%;bottom:14%;animation-delay:-.6s"><div class="bal" style="--w:50px"></div></div>
+    <div class="fly" style="right:2%;bottom:7%;--r:-10deg;animation-delay:-2s"><svg width="64" height="64" viewBox="0 0 24 24"><use href="#starB"/></svg></div>
+    <div class="fly m-hide" style="left:45%;bottom:5%;--r:-8deg;animation-delay:-2.6s"><div class="lglow"></div><svg width="58" height="145" viewBox="0 0 120 300" style="position:relative"><use href="#stick"/></svg></div>
+    <div class="sparks" id="sparks"></div>
+  </div>
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">순위표 없는 팬덤 기부</span>
+      <h1 class="lb" aria-label="최애가 빛날수록 아이들의 꿈별이 높이 올라가요"><span class="l" aria-hidden="true">최애가 빛날수록</span><span class="l" aria-hidden="true">아이들의 <b>꿈별</b>이</span><span class="l" aria-hidden="true">높이 올라가요</span></h1>
+      <p class="lead">1,000원마다 우리 팬덤의 꿈별이 한 칸씩 떠올라요. 리허설에서 커튼콜까지, 별이 꼭대기에 닿으면 소아암 아이들의 꿈 하나가 무대에 올라가요.</p>
+      <div class="ctas">
+        <button class="btn dark" id="heroGo"><span class="st">★</span> <span id="heroGoT">하람숲 꿈별 올리기</span></button>
+        <a class="btn" href="#find">우리 팬덤 찾기</a>
+      </div>
+      <div class="total">
+        <div class="row"><span>모든 팬덤이 함께 밝힌 공연장</span><b id="totP">0%</b></div>
+        <div class="bar"><i id="totB" style="width:0"></i></div>
+        <small id="concertNote"></small>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="fcard" id="fcard">
+        <span class="tag" id="fTag">오늘 생일</span>
+        <div class="ph" id="fPh"></div>
+        <div class="cap"><div><strong id="fName"></strong><small id="fMeta"></small></div><span class="now" id="fNow"></span></div>
+      </div>
+      <div class="meterBox">
+        <h4>꿈별 높이</h4>
+        <div class="vm" id="vm"></div>
+        <div class="next">다음 단계까지<b id="fNext">0%</b></div>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+</section>
+
+<section class="stage band" id="stage"><div class="wrap">
+  <h2>지금 공연장 객석</h2>
+  <p class="sub">구역을 누르면 그 팬덤의 응원봉을 켤 수 있어요.</p>
+  <div class="stg">STAGE<small>아이들이 주인공인 무대</small></div>
+  <div class="zones" id="zones"></div>
+  <div class="legend"><span>켜진 응원봉 = 지금 공연 단계의 진행도</span><span>빠르게 깜빡임 = 이번 주 함성이 큰 팬덤</span><span>구역 자리는 매주 추첨으로 바뀌어요</span></div>
+</div></section>
+<div class="ticker" aria-hidden="true"><div id="ticker"></div></div>
+
+<section class="band"><div class="wrap">
+  <h2>1위 대신, 우리 구역은 지금 몇 부?</h2>
+  <p class="sub">순위표는 없어요. 공연이 어디까지 왔는지만 보여요.</p>
+  <div class="why">
+    <div><h3>리허설 → 커튼콜</h3><h4>공연 단계</h4><p>리허설, 오프닝, 1부, 2부, 앙코르, 커튼콜. 응원봉이 다 켜지면 다음 단계로 넘어가요.</p></div>
+    <div><h3>48석 중 35석 점등</h3><h4>우리 구역 객석</h4><p>금액 대신 켜진 응원봉 수로 보여줘요. 빈자리가 보이면 채우고 싶어지죠.</p></div>
+    <div><h3>이번 주 함성</h3><h4>최근 활동 지표</h4><p>이번 주 참여 열기를 막대 5칸으로 보여줘요. 작은 팬덤도 이번 주엔 제일 시끄러울 수 있어요.</p></div>
+    <div><h3>매주 좌석 추첨</h3><h4>고정석 없음</h4><p>구역 위치는 매주 바뀌어요. 무대 앞자리라고 1등이 아니에요.</p></div>
+  </div>
+</div></section>
+
+<section class="band" id="find" style="padding-top:0"><div class="wrap">
+  <div class="findhead">
+    <div><h2>우리 팬덤 찾기</h2><p class="sub" style="margin:0">순서는 접속할 때마다 바뀌어요.</p></div>
+    <div class="tools"><input id="q" type="search" placeholder="아티스트·팬덤 이름 검색" aria-label="아티스트·팬덤 이름 검색"><button id="shuf">⇄ 다시 섞기</button></div>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+  <p class="note" id="shakeNote"></p>
+</div></section>
+
+<section class="band soft" id="how"><div class="wrap">
+  <h2>응원봉 켜는 방법</h2><p class="sub">네 걸음이면 우리 팬덤 구역이 밝아져요.</p>
+  <div class="steps">
+    <div><b>1</b><h4>우리 구역 찾기</h4><p>없다면 팬덤 대표가 새 구역 개설을 신청해요.</p></div>
+    <div><b>2</b><h4>응원봉 켜기</h4><p>1,000원 = 응원봉 1개. 개인·단체 기부도 같은 구역에 켜져요.</p></div>
+    <div><b>3</b><h4>기념일엔 무대 앞으로</h4><p>생일·데뷔일·컴백 주간엔 우리 구역이 무대 바로 앞 자리로 배정돼요.</p></div>
+    <div><b>4</b><h4>공연 티켓 인증</h4><p>단계가 오르면 팬덤 이름이 적힌 '기부 티켓'이 발급돼요. SNS에 자랑하세요.</p></div>
+  </div>
+</div></section>
+
+<section class="band"><div class="wrap">
+  <h2>공연이 진행될수록 열리는 것들</h2><p class="sub">기준 금액과 리워드는 재단 확정 후 채워 넣을 자리예요.</p>
+  <div class="unl" id="unl"></div>
+</div></section>
+
+<section class="band usage" id="usage"><div class="wrap" id="usageWrap">
+  <div><h2>켜진 응원봉은 이렇게 쓰여요</h2><p class="sub">팬덤의 불빛은 소아암·백혈병·희귀난치질환과 싸우는 아이들에게 닿아요.</p></div>
+</div></section>
+
+<section class="band" id="faq"><div class="wrap faq">
+  <h2 style="margin-bottom:22px">자주 묻는 질문</h2>
+  <details><summary>정말 순위는 안 보이나요?</summary><p>네. 팬덤끼리 금액을 비교하는 순위표는 만들지 않아요. 각 구역이 공연의 어느 단계에 와 있는지만 보여줘요.</p></details>
+  <details><summary>응원봉 색은 어떻게 정해지나요?</summary><p>팬덤의 공식 응원봉 컬러를 기본으로 하고, 겹치는 경우 팬덤 대표와 협의해 정해요.</p></details>
+  <details><summary>기부금 영수증을 받을 수 있나요?</summary><p>네. 개인·단체 모두 연말정산용 기부금 영수증이 발급돼요. 후원 시 입력한 정보로 발급됩니다.</p></details>
+  <details><summary>아티스트 사진은 어떻게 쓰이나요?</summary><p>소속사 확인을 받은 공식 이미지만 사용해요. 확인 전에는 팬덤 컬러의 기본 이미지로 표시돼요.</p></details>
+</div></section>
+
+<footer><div class="wrap"><span>한국소아암재단 · 모두의 콘서트</span><span id="foot"></span></div></footer>
+
+<div class="mask" id="mask" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal">
+    <button class="x" id="mClose" aria-label="닫기">✕</button>
+    <h3 id="mTitle">응원봉 켜기</h3>
+    <div class="who" id="mWho"></div>
+    <label>응원봉 개수 <span style="font-weight:400;color:var(--mute)">(1개 = 1,000원)</span></label>
+    <div class="qty" id="qty"></div>
+    <label for="mCustom">직접 입력</label>
+    <input id="mCustom" type="number" min="1" max="10000" inputmode="numeric" placeholder="개수">
+    <label for="mNick">공연장에 표시될 닉네임 (선택)</label>
+    <input id="mNick" maxlength="12" placeholder="예) 숲지기">
+    <div class="sum"><span>후원 금액</span><b id="mSum">5,000원</b></div>
+    <button class="go" id="mGo">응원봉 켜기</button>
+    <p class="demo" id="mDemo"></p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+{
+/* ▼ Apps Script 웹앱 주소(…/exec)를 넣으세요. 비워 두면 예시 데이터로 보여요. */
+const API_URL='';
+
+const ST=['리허설','오프닝','1부','2부','앙코르','커튼콜'];
+const TYPES=['전체','보이그룹','걸그룹','솔로','배우','밴드·기타'];
+const Q=new URLSearchParams(location.search);
+const EMBED=Q.has('embed');
+const DEMO=!API_URL;
+const DEF={stickPrice:1000,stageGoals:[0,48,96,144,192,240,288],
+  rewards:[['첫 응원봉 [기준]','팬덤 구역 개설 · 공연장에 이름 표시'],['[기준 금액]','팬덤 기부 티켓(디지털) 발급'],['[기준 금액]','온라인 기부증서 (팬덤명 기재)'],['[기준 금액]','재단 SNS 감사 게시물'],['[기준 금액]','실물 기부증서 · 홈페이지 배너 [기간]'],['[기준 금액]','아이들이 직접 쓴 응원 편지 영상 [확정 필요]']].map(r=>({cond:r[0],text:r[1]})),
+  usage:[{t:'[사용처 1]',d:'예) 환아 치료비 지원'},{t:'[사용처 2]',d:'예) 헌혈증·수혈 지원'},{t:'[사용처 3]',d:'예) 환아 가족 정서 지원'}],
+  ticker:['새 구역 개설 신청 받는 중'],donateUrl:'',shakePerStick:1000,matchSponsor:'[매칭 후원사]',
+  concertNote:"100%가 되면 아이들을 위한 '모두의 콘서트' 개최 — 재단 확정 필요",contact:'[연락처]',account:'[계좌 정보]'};
+const SAMPLE=[
+ ['orbit','오르빗세븐','오비','보이그룹','#a3e635','라임','I','',52,20,312],
+ ['junoh','이준오','준오랑','배우','#b8c2d1','실버','F','',38,30,540],
+ ['midnight','미드나잇썬','썬샤인','걸그룹','#facc15','선옐로','G','',32,40,701],
+ ['dohyun','강도현','도현단','배우','#e9bf74','샴페인','A','',75,30,288],
+ ['lumiel','루미엘','루미','보이그룹','#8b7cf6','라벤더','J','컴백 주간',179,50,812],
+ ['pastel','파스텔클럽','파솜','걸그룹','#c084fc','퍼플','D','',14,20,96],
+ ['seoyun','한서윤','서윤별','솔로','#2dd4bf','민트','E','데뷔 3주년',138,40,655],
+ ['cherry','체리웨이브','체리즈','걸그룹','#f25757','체리','L','',107,20,240],
+ ['trail','더트레일','트레일러','밴드·기타','#fb923c','오렌지','K','',120,10,173],
+ ['novaris','노바리스','노바','보이그룹','#60a5fa','블루','C','',199,30,420],
+ ['blooming','블루밍데이즈','블룸','걸그룹','#f472b6','핑크','B','이번 주 함성 최고',164,50,903],
+ ['haram','윤하람','하람숲','솔로','#4ade80','포레스트','H','오늘 생일',189,50,877]
+].map(r=>({id:r[0],name:r[1],fan:r[2],type:r[3],color:r[4],colorName:r[5],zone:r[6],tag:r[7],featured:!!r[7],visible:true,image:'',intro:'',total:r[8],week:r[9],shakes:r[10],
+  recent:r[0]==='haram'?[{n:'숲지기',s:10},{n:'하람이네',s:5},{n:'초록별',s:3}]:[]}));
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const col=c=>/^#[0-9a-fA-F]{3,8}$/.test(c||'')?c:'#ff2d78';
+const okImg=u=>/^https:\/\//.test(u||'');
+const num=n=>(Number(n)||0).toLocaleString('ko-KR');
+const won=n=>num(n)+'원';
+/* 흔들기 하루 1번: 한국 날짜 기준 + 기기 번호 */
+const kst=()=>new Date(Date.now()+9*36e5).toISOString().slice(0,10);
+let store={};try{store=JSON.parse(localStorage.getItem('mc-shake')||'{}')}catch(e){}
+const freshDay=()=>{if(store.d!==kst())store={d:kst(),ids:[]};};freshDay();
+const DID=(()=>{
+  const ck=document.cookie.match(/(?:^|; )mc_did=([a-z0-9-]+)/);let id=null;
+  try{id=localStorage.getItem('mc-did')}catch(e){}
+  id=id||(ck&&ck[1]);
+  if(!id||!/^[a-z0-9-]{16,40}$/.test(id)){id=(crypto.randomUUID?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('')).toLowerCase();}
+  try{localStorage.setItem('mc-did',id)}catch(e){}
+  try{document.cookie=`mc_did=${id}; max-age=34560000; path=/; SameSite=Lax`}catch(e){}
+  return id;})();
+const shaking=new Set();
+const saveStore=()=>{try{localStorage.setItem('mc-shake',JSON.stringify(store))}catch(e){}};
+
+let SET=DEF,F=[],FEAT=[],feat='',filter='전체',order=[],cur=null,qtyN=5,lastLit=null,solo=null,lastY=300;
+const byId=id=>F.find(x=>x.id===id);
+function calc(o){
+  const g=SET.stageGoals;let s=0;for(let i=1;i<6;i++)if(o.total>=g[i])s=i;
+  o.s=s;o.done=o.total>=g[6];
+  o.v=o.done?48:Math.max(0,Math.min(47,Math.floor((o.total-g[s])/(g[s+1]-g[s])*48)));
+}
+const ratio=x=>x.done?1:Math.min(1,(x.s+x.v/48)/6);
+const stageName=x=>x.done?'커튼콜 완주':ST[x.s];
+function build(raw){
+  SET=Object.assign({},DEF,raw.settings||{});
+  if(!Array.isArray(SET.stageGoals)||SET.stageGoals.length!==7)SET.stageGoals=DEF.stageGoals;
+  const list=(raw.fandoms||[]).filter(f=>f.visible!==false);
+  const maxW=Math.max(1,...list.map(f=>Number(f.week)||0));
+  F=list.map(f=>{const o=Object.assign({},f,{c:col(f.color),total:Number(f.total)||0,shakes:Number(f.shakes)||0,recent:Array.isArray(f.recent)?f.recent:[]});calc(o);o.w=f.week?Math.max(1,Math.ceil(f.week/maxW*5)):0;return o});
+  FEAT=F.filter(f=>f.featured).map(f=>f.id);if(!FEAT.length)FEAT=F.slice(0,4).map(f=>f.id);
+  feat=FEAT[0]||'';order=F.map(x=>x.id).sort(()=>Math.random()-.5);
+}
+
+const STAR='<svg viewBox="0 0 24 24"><path fill="#ffd84d" stroke="#e0a800" stroke-width="1" d="M12 1.8l3 6.4 7 .8-5.2 4.8 1.4 6.9L12 17.3 5.8 20.7l1.4-6.9L2 9l7-.8z"/></svg>';
+const sil=()=>'<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMax meet"><circle cx="100" cy="72" r="42" fill="rgba(255,255,255,.55)"/><path d="M28 200c0-52 32-82 72-82s72 30 72 82z" fill="rgba(255,255,255,.55)"/></svg>';
+const bg=c=>`linear-gradient(160deg,${c},${c}cc)`;
+const pos=p=>['top','bottom'].includes(p)?'center '+p:'center';
+const photo=(x,label)=>okImg(x.image)?`<img class="pimg" src="${esc(x.image)}" alt="${esc(x.name)}" style="object-position:${pos(x.imgPos)}" onerror="this.remove()">`:sil()+label;
+const pageLink=id=>location.pathname+'?f='+encodeURIComponent(id)+(EMBED?'&embed':'');
+const homeLink=()=>location.pathname+(EMBED?'?embed':'');
+
+function renderTotal(){
+  const p=F.length?Math.round(F.reduce((a,x)=>a+ratio(x),0)/F.length*100):0;
+  $('#totP').textContent=p+'%';$('#totB').style.width=p+'%';$('#concertNote').textContent=SET.concertNote;
+}
+function vmeter(x){
+  const r=ratio(x)*100;
+  return `<div class="track"><div class="fill" style="height:${r}%"></div></div>`+
+    ST.map((s,i)=>`<span class="lab${i===x.s?' on':''}" style="bottom:${(i+.5)/6*100}%">${s}</span>`).reverse().join('')+
+    `<span class="star" style="bottom:${r}%">${STAR}</span>`;
+}
+function renderFeat(){
+  const x=byId(feat);if(!x)return;
+  $('#fcard').style.background=bg(x.c);
+  $('#fTag').textContent=x.tag||'이번 주 응원';
+  $('#fPh').innerHTML=photo(x,'<span>[아티스트 공식 이미지 · 소속사 확인]</span>');
+  $('#fName').textContent=x.name;
+  $('#fMeta').textContent=`팬덤 ${x.fan} · 응원봉 ${x.colorName||''}`;
+  $('#fNow').textContent='지금 '+stageName(x);
+  $('#fNext').textContent=x.done?'완주!':Math.floor(x.v/48*100)+'%';
+  $('#heroGoT').textContent=x.fan+' 꿈별 올리기';
+  $('#vm').innerHTML=vmeter(x);
+  $('#chips').innerHTML=FEAT.map(id=>{const y=byId(id);return y?`<button class="chip${id===feat?' on':''}" data-f="${esc(id)}"><i style="background:${y.c}"></i><span><b>${esc(y.name)}</b><small>${esc(y.tag||y.fan)}</small></span></button>`:''}).join('');
+}
+const seatHTML=x=>Array.from({length:48},(_,i)=>`<u class="${i<x.v?'l':''}${lastLit&&lastLit.id===x.id&&i>=lastLit.from&&i<x.v?' pop':''}"></u>`).join('');
+function renderZones(){
+  const zs=[...F].sort((a,b)=>String(a.zone).localeCompare(String(b.zone)));
+  $('#zones').innerHTML=zs.map(x=>`<button class="zone${solo&&solo.id===x.id?' me':''}" data-o="${esc(x.id)}" style="--c:${x.c}" aria-label="${esc(x.zone)}구역 ${esc(x.fan)} 응원봉 켜기"><div class="zh"><span><i></i>${esc(x.zone)}구역 · ${esc(x.fan)}</span><small>${stageName(x)}</small></div><div class="seats">${seatHTML(x)}</div></button>`).join('');
+}
+function renderTicker(extra){
+  const auto=[];
+  F.forEach(x=>{if(x.tag&&x.featured)auto.push(`${x.tag} · ${x.name} ${x.fan} 구역`);if(x.v>=40&&!x.done)auto.push(`${x.fan} 구역 ${ST[x.s+1]}까지 ${48-x.v}석 남음`)});
+  const items=[...(extra||[]),...auto,...(SET.ticker||[])].slice(0,10);
+  const h=items.map(t=>`<span>${esc(t)}</span>`).join('');$('#ticker').innerHTML=h+h;
+}
+let tickExtra=[];
+function renderFilters(){$('#filters').innerHTML=TYPES.map(t=>`<button class="${t===filter?'on':''}" data-t="${t}">${t}</button>`).join('');}
+function renderGrid(){
+  const q=$('#q').value.trim();
+  const list=order.map(byId).filter(x=>x&&(filter==='전체'||x.type===filter)&&(!q||(x.name+x.fan).includes(q)));
+  if(!list.length){$('#grid').innerHTML='<div class="empty">찾는 팬덤이 아직 없어요. 팬덤 대표가 새 구역 개설을 신청할 수 있어요.</div>';return;}
+  $('#grid').innerHTML=list.map(x=>{
+    const r=ratio(x)*100,next=x.done?'커튼콜 완주':ST[x.s+1]+'까지';
+    const same=F.filter(y=>y!==x&&y.s===x.s&&!y.done).length;
+    const shaken=store.ids.includes(x.id);
+    return `<article class="card" id="c-${esc(x.id)}" style="--c:${x.c}">
+      <a class="cimg" href="${pageLink(x.id)}" style="background:${bg(x.c)}" aria-label="${esc(x.fan)} 팬덤 페이지로 가기"><div class="ph">${photo(x,'<span>[소속사 확인 이미지]</span>')}</div>
+        <span class="go-page">팬덤 페이지 보기 →</span>
+        ${x.v>=40&&!x.done?'<span class="st2">다음 단계 임박</span>':''}<span class="st1">${x.done?'완주':ST[x.s]+' 공연 중'}</span>
+        <div class="mini"><b style="height:${r}%"></b><span class="ms" style="bottom:${r}%">${STAR}</span></div></a>
+      <div class="cb"><h3><a href="${pageLink(x.id)}">${esc(x.name)}</a></h3><div class="meta">팬덤 ${esc(x.fan)} · ${esc(x.type)} · 응원봉 컬러 ${esc(x.colorName)}</div>
+        <div class="pr"><span>${next}</span><span>${x.v} / 48석</span></div>
+        <div class="bar"><i style="width:${x.v/48*100}%"></i></div>
+        <div class="wk"><span>이번 주 함성</span><span class="wkb">${[0,1,2,3,4].map(i=>`<u class="${i<x.w?'l':''}" style="height:${5+i*2.3}px"></u>`).join('')}</span></div>
+        <div class="tog">${x.done?'모든 무대를 마쳤어요':same?`지금 ${ST[x.s]} 무대에 함께 선 팬덤 ${same}팀`:`지금 ${ST[x.s]} 무대를 혼자 밝히는 중`}</div>
+        <div class="acts"><button class="sk" data-s="${esc(x.id)}" ${shaken?'disabled':''}>${shaken?'흔들기 완료':'흔들기'}</button><button class="lt" data-o="${esc(x.id)}">응원봉 켜기</button></div>
+      </div></article>`;
+  }).join('');
+}
+function renderUnl(){
+  $('#unl').innerHTML=(SET.rewards||[]).slice(0,6).map((u,i)=>{const n=F.filter(x=>x.s>=i||x.done).length;return `<div class="${i===5?'last':''}${solo&&solo.s===i&&!solo.done?' cur':''}"><h4>${ST[i]}</h4><small>${esc(u.cond)}</small><p>${esc(u.text)}</p><span class="cnt">${n?n+'개 팬덤 도달':'아직 도달한 팬덤 없음'}</span></div>`}).join('');
+}
+function renderStatic(){
+  const w=$('#usageWrap');w.querySelectorAll('.u').forEach(n=>n.remove());
+  w.insertAdjacentHTML('beforeend',(SET.usage||[]).map(u=>`<div class="u"><b>${esc(u.t)}</b><span>${esc(u.d)}</span></div>`).join(''));
+  $('#foot').textContent=`문의 ${SET.contact} · 기부계좌 ${SET.account}`;
+  $('#shakeNote').innerHTML=`'흔들기'는 매일 무료로 1번 할 수 있어요. 흔들기 ${num(SET.shakePerStick)}번이 모이면 ${esc(SET.matchSponsor)}가 그 구역 응원봉 1개를 대신 켜줘요.${DEMO?'<br>아티스트·팬덤 이름과 수치는 화면 구성을 위한 예시예요.':''}`;
+}
+function renderSolo(){
+  const x=solo;if(!x)return;
+  const shaken=store.ids.includes(x.id),per=Number(SET.shakePerStick)||1000;
+  $('#solo').style.setProperty('--c',x.c);
+  $('#solo').innerHTML=`<div class="wrap">
+    <div class="fcard" style="background:${bg(x.c)}">${x.tag?`<span class="tag">${esc(x.tag)}</span>`:''}<div class="ph">${photo(x,'<span>[아티스트 공식 이미지 · 소속사 확인]</span>')}</div>
+      <div class="cap"><div><strong>${esc(x.name)}</strong><small>팬덤 ${esc(x.fan)} · 응원봉 ${esc(x.colorName)}</small></div><span class="now">${esc(x.zone)}구역</span></div></div>
+    <div>
+      <a class="back" href="${homeLink()}">← 전체 공연장 보기</a><br>
+      <span class="badge">${esc(x.zone)}구역 · 팬덤 ${esc(x.fan)}</span>
+      <h1 class="lb" aria-label="${esc(x.fan)}의 불빛이 아이들의 무대를 밝혀요"><span class="l" aria-hidden="true">${esc(x.fan)}의 불빛이</span><span class="l" aria-hidden="true">아이들의 <b>무대</b>를 밝혀요</span></h1>
+      <p class="intro">${esc(x.intro||`${x.name}을(를) 응원하는 마음이 1,000원마다 응원봉 하나로 켜져요. 48석이 모두 켜지면 다음 무대로 넘어가요.`)}</p>
+      <div class="pills">${ST.map((s,i)=>`<span class="${x.done||i<x.s?'d':i===x.s?'on':''}">${s}</span>`).join('')}</div>
+      <div class="hall" style="--c:${x.c}"><div class="zh"><span>${x.done?'커튼콜까지 모두 마쳤어요':`지금 <b>${ST[x.s]}</b> · ${ST[x.s+1]}까지 ${48-x.v}석 남음`}</span><span>${x.v} / 48석</span></div><div class="seats" id="soloSeats">${seatHTML(x)}</div></div>
+      <div class="sstats"><div><small>켜진 응원봉</small><b>${num(x.total)}개</b></div><div><small>이번 주</small><b>${num(x.week||0)}개</b></div><div><small>흔들기</small><b>${num(x.shakes%per)}</b><small>/ ${num(per)}번</small></div><div><small>공연장 진행</small><b>${Math.round(ratio(x)*100)}%</b></div></div>
+      <div class="ctas"><button class="btn dark" data-o="${esc(x.id)}"><span class="st">★</span> 응원봉 켜기</button><button class="btn" data-s="${esc(x.id)}" ${shaken?'disabled':''}>${shaken?'오늘 흔들기 완료':'흔들기'}</button><button class="btn" id="copyLink">링크 복사</button></div>
+      ${x.recent.length?`<div class="fans"><h4>최근 응원봉을 켠 팬</h4><div>${x.recent.map(r=>`<span>${esc(r.n)}<i>${num(r.s)}개</i></span>`).join('')}</div></div>`:''}
+    </div></div>`;
+}
+function all(){renderTotal();renderFeat();renderZones();renderGrid();renderUnl();renderSolo();}
+
+/* ---------- 응원봉 켜기 ---------- */
+const QS=[1,5,10,30];
+function openM(id){
+  cur=byId(id);if(!cur)return;qtyN=5;$('#mCustom').value='';
+  $('#mTitle').textContent=cur.fan+' 응원봉 켜기';
+  const w=$('#mWho');w.innerHTML='<i></i><span></span>';w.querySelector('i').style.background=cur.c;
+  w.querySelector('span').textContent=`${cur.name} · ${cur.zone}구역 · 지금 ${stageName(cur)} (${cur.v}/48석)`;
+  const live=!!SET.donateUrl;
+  $('#mGo').textContent=live?'후원 페이지로 이동':'응원봉 켜기';
+  $('#mDemo').textContent=live?`후원 페이지의 요청사항(메모)에 팬덤 이름 '${cur.fan}'을 꼭 적어 주세요. 재단이 확인한 뒤 응원봉이 켜져요.`:'체험용 화면이에요. 실제 결제는 재단 후원 페이지 연결 후 동작해요.';
+  drawQty();
+  const m=$('#mask');
+  if(EMBED){m.style.height=document.body.scrollHeight+'px';m.querySelector('.modal').style.marginTop=Math.max(16,lastY-260)+'px';}
+  m.classList.add('open');setTimeout(()=>$('#mGo').focus({preventScroll:true}),50);
+}
+function drawQty(){$('#qty').innerHTML=QS.map(q=>`<button data-q="${q}" class="${q===qtyN&&!$('#mCustom').value?'on':''}">${q}개</button>`).join('');$('#mSum').textContent=won(qtyN*(Number(SET.stickPrice)||1000));}
+function closeM(){$('#mask').classList.remove('open');}
+function toast(msg){const t=$('#toast');t.textContent=msg;if(EMBED)t.style.top=lastY+'px';t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2800);}
+function burst(el){
+  if(!el)return;const r=el.getBoundingClientRect();
+  for(let i=0;i<14;i++){const s=document.createElement('span');s.className='burst';s.textContent='★';
+    s.style.left=(r.left+r.width/2)+'px';s.style.top=(r.top+r.height/2)+'px';
+    s.style.setProperty('--dx',(Math.random()*240-120)+'px');s.style.setProperty('--dy',(Math.random()*-200-40)+'px');
+    document.body.appendChild(s);setTimeout(()=>s.remove(),1200);}
+}
+function light(x,n,nick){
+  const g=SET.stageGoals,before=x.s,beforeV=x.v;
+  x.total+=n;x.week=(x.week||0)+n;if(nick)x.recent.unshift({n:nick,s:n});calc(x);
+  lastLit={id:x.id,from:x.s>before?0:beforeV};
+  tickExtra.unshift(`${x.fan} 구역 응원봉 ${n}개 점등`);renderTicker(tickExtra);
+  all();
+  const who=nick?nick+'님 덕분에 ':'';
+  toast(x.s>before?`${who}${x.fan} 구역이 ${ST[x.s]} 무대에 올랐어요!`:`${who}${x.fan} 구역에 응원봉 ${n}개가 켜졌어요`);
+  burst(document.querySelector(solo&&solo.id===x.id?'#soloSeats':`.zone[data-o="${CSS.escape(x.id)}"]`));
+  setTimeout(()=>{lastLit=null},800);
+}
+function markShaken(id){
+  document.querySelectorAll(`[data-s="${CSS.escape(id)}"]`).forEach(b=>{b.disabled=true;b.textContent=b.closest('.solo')?'오늘 흔들기 완료':'흔들기 완료'});
+}
+async function shake(id,btn){
+  const x=byId(id);if(!x)return;
+  freshDay();
+  if(shaking.has(id))return;
+  if(store.ids.includes(id)){markShaken(id);toast('오늘은 이미 흔들었어요. 내일 다시 와 주세요!');return;}
+  shaking.add(id);
+  document.querySelectorAll(`[data-s="${CSS.escape(id)}"]`).forEach(b=>b.disabled=true);
+  let ok=true,already=false;
+  if(API_URL){
+    try{
+      const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'shake',id,did:DID})});
+      const j=await r.json();
+      if(j&&j.ok){x.shakes=j.shakes}else if(j&&j.reason==='already'){already=true;if(j.shakes)x.shakes=j.shakes}else ok=false;
+    }catch(e){ok=false}
+  }else x.shakes++;
+  shaking.delete(id);
+  if(!ok){document.querySelectorAll(`[data-s="${CSS.escape(id)}"]`).forEach(b=>b.disabled=false);toast('연결이 불안정해요. 잠시 후 다시 눌러 주세요');return;}
+  store.ids.push(id);saveStore();markShaken(id);
+  if(already){toast('오늘은 이미 흔들었어요. 내일 다시 와 주세요!');return;}
+  const card=$('#c-'+CSS.escape(id));if(card){card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');}
+  burst(btn);
+  const per=Number(SET.shakePerStick)||1000;
+  toast(`${x.fan} 구역 흔들기 ${num(x.shakes%per)} / ${num(per)}`);
+  if(solo&&solo.id===id)renderSolo();
+}
+async function copyLink(){
+  const u=location.origin+location.pathname+'?f='+encodeURIComponent(solo.id);
+  try{await navigator.clipboard.writeText(u);toast('링크를 복사했어요. 팬덤 친구들에게 보내 주세요!')}catch(e){toast(u)}
+}
+
+document.addEventListener('pointerdown',e=>{lastY=e.pageY},true);
+document.addEventListener('click',e=>{
+  const o=e.target.closest('[data-o]');if(o){openM(o.dataset.o);return;}
+  const c=e.target.closest('[data-f]');if(c){feat=c.dataset.f;clearInterval(auto);renderFeat();return;}
+  const t=e.target.closest('[data-t]');if(t){filter=t.dataset.t;renderFilters();renderGrid();return;}
+  const q=e.target.closest('[data-q]');if(q){qtyN=+q.dataset.q;$('#mCustom').value='';drawQty();return;}
+  const s=e.target.closest('[data-s]');if(s&&!s.disabled){shake(s.dataset.s,s);return;}
+  if(e.target.closest('#copyLink'))copyLink();
+});
+$('#mask').addEventListener('click',e=>{if(e.target.id==='mask')closeM();});
+$('#mClose').addEventListener('click',closeM);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM();});
+$('#mCustom').addEventListener('input',e=>{const v=Math.max(0,Math.min(10000,parseInt(e.target.value)||0));if(v)qtyN=v;drawQty();});
+$('#mGo').addEventListener('click',()=>{
+  if(!cur||qtyN<1)return;
+  if(SET.donateUrl){const a=document.createElement('a');a.href=SET.donateUrl;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();closeM();toast(`후원 후 재단 확인을 거쳐 ${cur.fan} 구역에 응원봉이 켜져요`);return;}
+  const nick=$('#mNick').value.trim().slice(0,12);closeM();light(cur,qtyN,nick);
+});
+$('#heroGo').addEventListener('click',()=>openM(feat));
+$('#q').addEventListener('input',renderGrid);
+$('#shuf').addEventListener('click',()=>{order.sort(()=>Math.random()-.5);renderGrid();});
+let auto=setInterval(()=>{if(solo||document.hidden||$('#mask').classList.contains('open')||FEAT.length<2)return;feat=FEAT[(FEAT.indexOf(feat)+1)%FEAT.length];renderFeat();},7000);
+
+/* 타이틀 반짝이 */
+(()=>{const box=$('#sparks');if(!box)return;let h='';
+  for(let i=0;i<18;i++){const big=i%6===0,sz=big?26+Math.random()*14:9+Math.random()*13;
+    h+=`<svg class="spark${i%3===0?' y':''}" viewBox="0 0 24 24" style="left:${(Math.random()*97).toFixed(1)}%;top:${(Math.random()*92).toFixed(1)}%;width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px;--d:${(2+Math.random()*2.8).toFixed(2)}s;--w:${(-Math.random()*4).toFixed(2)}s"><use href="#st4"/></svg>`;}
+  box.innerHTML=h;})();
+if(EMBED){
+  document.body.classList.add('embed');
+  const send=()=>{try{parent.postMessage({type:'mc-height',h:Math.ceil(document.body.getBoundingClientRect().height)},'*')}catch(e){}};
+  const ro=new ResizeObserver(send);ro.observe(document.body);window.addEventListener('load',send);
+}
+
+function jsonp(url){return new Promise((res,rej)=>{const cb='mc_cb_'+Date.now();const s=document.createElement('script');window[cb]=d=>{res(d);delete window[cb];s.remove()};s.onerror=()=>{rej(new Error('jsonp'));s.remove()};s.src=url+'&callback='+cb;document.body.appendChild(s);});}
+async function load(){
+  let raw=null;
+  if(API_URL){
+    const q=(API_URL.includes('?')?'&':'?')+'action=data&did='+encodeURIComponent(DID);
+    try{const r=await fetch(API_URL+q);raw=await r.json();}
+    catch(e){try{raw=await jsonp(API_URL+q)}catch(x){raw=null}}
+    if(raw&&Array.isArray(raw.mine)){freshDay();raw.mine.forEach(id=>{if(!store.ids.includes(id))store.ids.push(String(id))});saveStore();}
+  }
+  if(!raw||!raw.fandoms)raw={settings:DEF,fandoms:SAMPLE};
+  build(raw);
+  const fid=Q.get('f')||decodeURIComponent(location.hash.slice(1));
+  solo=fid?byId(fid)||null:null;
+  if(solo){$('#top').classList.add('hide');$('#solo').classList.remove('hide');document.title=solo.fan+' 응원 구역 · 모두의 콘서트';}
+  renderFilters();renderStatic();renderTicker();all();
+}
+load();
+}
+</script>
+</body>
+</html>

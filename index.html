@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>모두의 콘서트</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="preconnect" href="https://lh3.googleusercontent.com">
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 /* VOICE: 팬덤 응원 문화처럼 밝고 들뜬, 그러나 순위 없이 다정한 목소리
@@ -243,6 +246,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .hero .btn:active,.solo .btn:active{transform:translateY(4px);box-shadow:0 1px 0 #8a0a39}
 .hero .total .bar i{background:#e3175f}
 .hero .total .row b{color:#e3175f}
+.loaderr{position:sticky;top:0;z-index:40;background:#2b1420;color:#fff;text-align:center;padding:12px 16px;font-size:14px}.loaderr b{color:#ffb3d2;margin-right:6px}
+.pimg{opacity:0;transition:opacity .45s}.pimg.in{opacity:1}
+.skel{border:0!important;min-height:300px;background:linear-gradient(90deg,#f3eef5 25%,#fcf9fd 50%,#f3eef5 75%)!important;background-size:200% 100%!important;animation:skl 1.2s linear infinite}
+.zone.skel{min-height:120px;background:linear-gradient(90deg,#1c1636 25%,#2b2352 50%,#1c1636 75%)!important;background-size:200% 100%!important}
+@keyframes skl{to{background-position:-200% 0}}
 /* photo, star sizing */
 .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .vm .star svg,.ms svg{width:100%;height:100%;display:block}
@@ -327,7 +335,7 @@ a.cimg:focus-visible{outline:3px solid var(--pink);outline-offset:-3px}
       <h1 class="lb" aria-label="최애가 빛날수록 아이들의 꿈별이 높이 올라가요"><span class="l" aria-hidden="true">최애가 빛날수록</span><span class="l" aria-hidden="true">아이들의 <b>꿈별</b>이</span><span class="l" aria-hidden="true">높이 올라가요</span></h1>
       <p class="lead">1,000원마다 우리 팬덤의 꿈별이 한 칸씩 떠올라요. 리허설에서 커튼콜까지, 별이 꼭대기에 닿으면 소아암 아이들의 꿈 하나가 무대에 올라가요.</p>
       <div class="ctas">
-        <button class="btn dark" id="heroGo"><span class="st">★</span> <span id="heroGoT">하람숲 꿈별 올리기</span></button>
+        <button class="btn dark" id="heroGo"><span class="st">★</span> <span id="heroGoT">꿈별 올리기</span></button>
         <a class="btn" href="#find">우리 팬덤 찾기</a>
       </div>
       <div class="total">
@@ -421,7 +429,7 @@ a.cimg:focus-visible{outline:3px solid var(--pink);outline-offset:-3px}
     <label for="mCustom">직접 입력</label>
     <input id="mCustom" type="number" min="1" max="10000" inputmode="numeric" placeholder="개수">
     <label for="mNick">공연장에 표시될 닉네임 (선택)</label>
-    <input id="mNick" maxlength="12" placeholder="예) 숲지기">
+    <input id="mNick" maxlength="12" placeholder="예) 별빛팬">
     <div class="sum"><span>후원 금액</span><b id="mSum">5,000원</b></div>
     <button class="go" id="mGo">응원봉 켜기</button>
     <p class="demo" id="mDemo"></p>
@@ -438,27 +446,11 @@ const ST=['리허설','오프닝','1부','2부','앙코르','커튼콜'];
 const TYPES=['전체','보이그룹','걸그룹','솔로','배우','밴드·기타'];
 const Q=new URLSearchParams(location.search);
 const EMBED=Q.has('embed');
-const DEMO=!API_URL;
 const DEF={stickPrice:1000,stageGoals:[0,48,96,144,192,240,288],
   rewards:[['첫 응원봉 [기준]','팬덤 구역 개설 · 공연장에 이름 표시'],['[기준 금액]','팬덤 기부 티켓(디지털) 발급'],['[기준 금액]','온라인 기부증서 (팬덤명 기재)'],['[기준 금액]','재단 SNS 감사 게시물'],['[기준 금액]','실물 기부증서 · 홈페이지 배너 [기간]'],['[기준 금액]','아이들이 직접 쓴 응원 편지 영상 [확정 필요]']].map(r=>({cond:r[0],text:r[1]})),
   usage:[{t:'[사용처 1]',d:'예) 환아 치료비 지원'},{t:'[사용처 2]',d:'예) 헌혈증·수혈 지원'},{t:'[사용처 3]',d:'예) 환아 가족 정서 지원'}],
   ticker:['새 구역 개설 신청 받는 중'],donateUrl:'',shakePerStick:1000,matchSponsor:'[매칭 후원사]',
   concertNote:"100%가 되면 아이들을 위한 '모두의 콘서트' 개최 — 재단 확정 필요",contact:'[연락처]',account:'[계좌 정보]'};
-const SAMPLE=[
- ['orbit','오르빗세븐','오비','보이그룹','#a3e635','라임','I','',52,20,312],
- ['junoh','이준오','준오랑','배우','#b8c2d1','실버','F','',38,30,540],
- ['midnight','미드나잇썬','썬샤인','걸그룹','#facc15','선옐로','G','',32,40,701],
- ['dohyun','강도현','도현단','배우','#e9bf74','샴페인','A','',75,30,288],
- ['lumiel','루미엘','루미','보이그룹','#8b7cf6','라벤더','J','컴백 주간',179,50,812],
- ['pastel','파스텔클럽','파솜','걸그룹','#c084fc','퍼플','D','',14,20,96],
- ['seoyun','한서윤','서윤별','솔로','#2dd4bf','민트','E','데뷔 3주년',138,40,655],
- ['cherry','체리웨이브','체리즈','걸그룹','#f25757','체리','L','',107,20,240],
- ['trail','더트레일','트레일러','밴드·기타','#fb923c','오렌지','K','',120,10,173],
- ['novaris','노바리스','노바','보이그룹','#60a5fa','블루','C','',199,30,420],
- ['blooming','블루밍데이즈','블룸','걸그룹','#f472b6','핑크','B','이번 주 함성 최고',164,50,903],
- ['haram','윤하람','하람숲','솔로','#4ade80','포레스트','H','오늘 생일',189,50,877]
-].map(r=>({id:r[0],name:r[1],fan:r[2],type:r[3],color:r[4],colorName:r[5],zone:r[6],tag:r[7],featured:!!r[7],visible:true,image:'',intro:'',total:r[8],week:r[9],shakes:r[10],
-  recent:r[0]==='haram'?[{n:'숲지기',s:10},{n:'하람이네',s:5},{n:'초록별',s:3}]:[]}));
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -504,7 +496,9 @@ const STAR='<svg viewBox="0 0 24 24"><path fill="#ffd84d" stroke="#e0a800" strok
 const sil=()=>'<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMax meet"><circle cx="100" cy="72" r="42" fill="rgba(255,255,255,.55)"/><path d="M28 200c0-52 32-82 72-82s72 30 72 82z" fill="rgba(255,255,255,.55)"/></svg>';
 const bg=c=>`linear-gradient(160deg,${c},${c}cc)`;
 const pos=p=>['top','bottom'].includes(p)?'center '+p:'center';
-const photo=(x,label)=>okImg(x.image)?`<img class="pimg" src="${esc(x.image)}" alt="${esc(x.name)}" style="object-position:${pos(x.imgPos)}" onerror="this.remove()">`:sil()+label;
+/* 구글 드라이브 사진은 보이는 크기에 맞춰 작게 받아요 */
+const sized=(u,w)=>{const m=/^https:\/\/lh3\.googleusercontent\.com\/d\/([\w-]+)/.exec(u||'');return m?`https://lh3.googleusercontent.com/d/${m[1]}=w${w}`:u};
+const photo=(x,label,w=640,eager=false)=>okImg(x.image)?`<img class="pimg" src="${esc(sized(x.image,w))}" alt="${esc(x.name)}" ${eager?'fetchpriority="high"':'loading="lazy"'} decoding="async" style="object-position:${pos(x.imgPos)}" onload="this.classList.add('in')" onerror="this.remove()">`:sil()+label;
 const pageLink=id=>location.pathname+'?f='+encodeURIComponent(id)+(EMBED?'&embed':'');
 const homeLink=()=>location.pathname+(EMBED?'?embed':'');
 
@@ -522,7 +516,7 @@ function renderFeat(){
   const x=byId(feat);if(!x)return;
   $('#fcard').style.background=bg(x.c);
   $('#fTag').textContent=x.tag||'이번 주 응원';
-  $('#fPh').innerHTML=photo(x,'<span>[아티스트 공식 이미지 · 소속사 확인]</span>');
+  $('#fPh').innerHTML=photo(x,'<span>[아티스트 공식 이미지 · 소속사 확인]</span>',1000,true);
   $('#fName').textContent=x.name;
   $('#fMeta').textContent=`팬덤 ${x.fan} · 응원봉 ${x.colorName||''}`;
   $('#fNow').textContent='지금 '+stageName(x);
@@ -573,14 +567,14 @@ function renderStatic(){
   const w=$('#usageWrap');w.querySelectorAll('.u').forEach(n=>n.remove());
   w.insertAdjacentHTML('beforeend',(SET.usage||[]).map(u=>`<div class="u"><b>${esc(u.t)}</b><span>${esc(u.d)}</span></div>`).join(''));
   $('#foot').textContent=`문의 ${SET.contact} · 기부계좌 ${SET.account}`;
-  $('#shakeNote').innerHTML=`'흔들기'는 매일 무료로 1번 할 수 있어요. 흔들기 ${num(SET.shakePerStick)}번이 모이면 ${esc(SET.matchSponsor)}가 그 구역 응원봉 1개를 대신 켜줘요.${DEMO?'<br>아티스트·팬덤 이름과 수치는 화면 구성을 위한 예시예요.':''}`;
+  $('#shakeNote').innerHTML=`'흔들기'는 매일 무료로 1번 할 수 있어요. 흔들기 ${num(SET.shakePerStick)}번이 모이면 ${esc(SET.matchSponsor)}가 그 구역 응원봉 1개를 대신 켜줘요.`;
 }
 function renderSolo(){
   const x=solo;if(!x)return;
   const shaken=store.ids.includes(x.id),per=Number(SET.shakePerStick)||1000;
   $('#solo').style.setProperty('--c',x.c);
   $('#solo').innerHTML=`<div class="wrap">
-    <div class="fcard" style="background:${bg(x.c)}">${x.tag?`<span class="tag">${esc(x.tag)}</span>`:''}<div class="ph">${photo(x,'<span>[아티스트 공식 이미지 · 소속사 확인]</span>')}</div>
+    <div class="fcard" style="background:${bg(x.c)}">${x.tag?`<span class="tag">${esc(x.tag)}</span>`:''}<div class="ph">${photo(x,'<span>[아티스트 공식 이미지 · 소속사 확인]</span>',1000,true)}</div>
       <div class="cap"><div><strong>${esc(x.name)}</strong><small>팬덤 ${esc(x.fan)} · 응원봉 ${esc(x.colorName)}</small></div><span class="now">${esc(x.zone)}구역</span></div></div>
     <div>
       <a class="back" href="${homeLink()}">← 전체 공연장 보기</a><br>
@@ -699,21 +693,43 @@ if(EMBED){
   const ro=new ResizeObserver(send);ro.observe(document.body);window.addEventListener('load',send);
 }
 
-function jsonp(url){return new Promise((res,rej)=>{const cb='mc_cb_'+Date.now();const s=document.createElement('script');window[cb]=d=>{res(d);delete window[cb];s.remove()};s.onerror=()=>{rej(new Error('jsonp'));s.remove()};s.src=url+'&callback='+cb;document.body.appendChild(s);});}
-async function load(){
-  let raw=null;
-  if(API_URL){
-    const q=(API_URL.includes('?')?'&':'?')+'action=data&did='+encodeURIComponent(DID);
-    try{const r=await fetch(API_URL+q);raw=await r.json();}
-    catch(e){try{raw=await jsonp(API_URL+q)}catch(x){raw=null}}
-    if(raw&&Array.isArray(raw.mine)){freshDay();raw.mine.forEach(id=>{if(!store.ids.includes(id))store.ids.push(String(id))});saveStore();}
-  }
-  if(!raw||!raw.fandoms)raw={settings:DEF,fandoms:SAMPLE};
+function jsonp(url){return new Promise((res,rej)=>{const cb='mc_cb_'+Date.now();const s=document.createElement('script');const t=setTimeout(()=>{window[cb]=()=>{};s.remove();rej(new Error('timeout'))},8000);window[cb]=d=>{clearTimeout(t);res(d);delete window[cb];s.remove()};s.onerror=()=>{clearTimeout(t);rej(new Error('jsonp'));s.remove()};s.src=url+'&callback='+cb;document.body.appendChild(s);});}
+/* 빠르게 보여주기: 지난번 데이터를 먼저 그리고, 새 데이터로 바꿔요 */
+const CK='mc-data-v1';
+function readCache(){try{const c=JSON.parse(localStorage.getItem(CK)||'null');if(c&&c.raw&&c.raw.fandoms&&Date.now()-c.t<864e5)return c.raw}catch(e){}return null}
+function writeCache(raw){try{localStorage.setItem(CK,JSON.stringify({t:Date.now(),raw}))}catch(e){}}
+function skeleton(){
+  $('#grid').innerHTML=Array.from({length:8},()=>'<div class="card skel"></div>').join('');
+  $('#zones').innerHTML=Array.from({length:12},()=>'<div class="zone skel"></div>').join('');
+}
+function show(raw){
+  const prevOrder=order.slice(),prevFeat=feat;
   build(raw);
+  if(prevOrder.length){const keep=prevOrder.filter(id=>byId(id));order=[...keep,...order.filter(id=>!keep.includes(id))];if(byId(prevFeat))feat=prevFeat;}
+  if(cur)cur=byId(cur.id)||cur;
   const fid=Q.get('f')||decodeURIComponent(location.hash.slice(1));
   solo=fid?byId(fid)||null:null;
   if(solo){$('#top').classList.add('hide');$('#solo').classList.remove('hide');document.title=solo.fan+' 응원 구역 · 모두의 콘서트';}
-  renderFilters();renderStatic();renderTicker();all();
+  renderFilters();renderStatic();renderTicker(tickExtra);all();
+}
+async function getJSON(url){try{const r=await fetch(url);return await r.json()}catch(e){return await jsonp(url)}}
+async function load(){
+  if(!API_URL){console.error('[모두의 콘서트] API_URL이 비어 있어요. 웹앱 주소(…/exec)를 넣어 주세요.');loadFail();return;}
+  const base=API_URL+(API_URL.includes('?')?'&':'?');
+  const cached=readCache();
+  if(cached)show(cached);else skeleton();
+  getJSON(base+'action=mine&did='+encodeURIComponent(DID)).then(m=>{
+    if(m&&Array.isArray(m.mine)&&m.mine.length){freshDay();m.mine.forEach(id=>{if(!store.ids.includes(String(id)))store.ids.push(String(id))});saveStore();if(F.length){renderGrid();renderSolo();}}
+  }).catch(()=>{});
+  let raw=null;try{raw=await getJSON(base+'action=data')}catch(e){}
+  if(raw&&raw.fandoms){writeCache(raw);show(raw);return;}
+  console.error('[모두의 콘서트] 데이터를 불러오지 못했어요. API_URL과 웹앱 배포 권한(모든 사용자)을 확인하세요:',API_URL);
+  if(!cached)loadFail();
+}
+function loadFail(){
+  const n=document.createElement('div');n.className='loaderr';n.setAttribute('role','alert');
+  n.innerHTML='<b>공연장 정보를 불러오지 못했어요.</b> 잠시 후 새로고침해 주세요.';
+  document.body.prepend(n);show({settings:DEF,fandoms:[]});
 }
 load();
 }
